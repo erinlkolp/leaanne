@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { Character, WeeklyActivity, RaidLockout, CharacterProgress } from '../types/wow';
-import { CLASS_COLORS, MOCK_WEEKLY_ACTIVITIES, MOCK_RAIDS } from '../data/mockData';
+import { CLASS_COLORS, DEFAULT_WEEKLY_ACTIVITIES, RAID_LOCKOUTS } from '../data/gameData';
 import { CheckCircle2, Circle, Trophy, Swords, Sparkles, MapPin, Gift, Plus, Minus, FileText } from 'lucide-react';
 
 interface WeeklyLockoutsViewProps {
@@ -25,7 +25,7 @@ export default function WeeklyLockoutsView({
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const classColor = CLASS_COLORS[character.class] || '#fbbf24';
 
-  const activities = MOCK_WEEKLY_ACTIVITIES;
+  const activities = DEFAULT_WEEKLY_ACTIVITIES;
   const filteredActivities =
     selectedCategory === 'All'
       ? activities
@@ -292,7 +292,7 @@ export default function WeeklyLockoutsView({
             </div>
 
             <div className="space-y-2.5 mt-3">
-              {MOCK_RAIDS.map((raid) => {
+              {RAID_LOCKOUTS.map((raid) => {
                 const raidProg = progress.raidProgress[raid.id] || {};
                 const isCleared = Object.values(raidProg).some((val) => val > 0);
 

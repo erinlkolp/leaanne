@@ -32,9 +32,9 @@ Then visit **`http://localhost:3000`** in your browser.
 
 ## 🔑 How to Obtain Blizzard API Credentials (Step-by-Step)
 
-The companion comes pre-loaded with rich sample data for LeaAnne so it works completely offline right out of the box. 
+The companion starts completely clean with official The War Within weekly activities and rare mount/pet catalogs, ready for LeaAnne to import or add her actual characters directly from Battle.net.
 
-When you want to connect live character and armory data directly from Blizzard's servers, follow these steps to obtain a free API key in ~2 minutes:
+To connect live character, gear, and mount data directly from Blizzard's servers, follow these steps to obtain a free API key in ~2 minutes:
 
 ### Step 1: Sign In to Blizzard Developer Portal
 1. Go to **[develop.battle.net](https://develop.battle.net)**.

@@ -1,4 +1,4 @@
-import { Character, WeeklyActivity, RaidLockout, MountItem, PetItem, CharacterProgress } from '../types/wow';
+import { WeeklyActivity, RaidLockout, MountItem, PetItem } from '../types/wow';
 
 export const CLASS_COLORS: Record<string, string> = {
   'Death Knight': '#C41E3A',
@@ -16,71 +16,7 @@ export const CLASS_COLORS: Record<string, string> = {
   'Warrior': '#C69B6D',
 };
 
-export const MOCK_CHARACTERS: Character[] = [
-  {
-    id: 'char-1',
-    name: 'LeaAnne',
-    realm: 'Moon Guard',
-    region: 'us',
-    class: 'Druid',
-    spec: 'Restoration',
-    level: 80,
-    itemLevel: 628,
-    faction: 'Alliance',
-    race: 'Night Elf',
-    isMain: true,
-  },
-  {
-    id: 'char-2',
-    name: 'Silvermist',
-    realm: 'Moon Guard',
-    region: 'us',
-    class: 'Mage',
-    spec: 'Frost',
-    level: 80,
-    itemLevel: 619,
-    faction: 'Alliance',
-    race: 'Void Elf',
-  },
-  {
-    id: 'char-3',
-    name: 'Aurorastrike',
-    realm: 'Proudmoore',
-    region: 'us',
-    class: 'Paladin',
-    spec: 'Holy',
-    level: 80,
-    itemLevel: 615,
-    faction: 'Alliance',
-    race: 'Human',
-  },
-  {
-    id: 'char-4',
-    name: 'Sunwhisper',
-    realm: 'Area 52',
-    region: 'us',
-    class: 'Hunter',
-    spec: 'Beast Mastery',
-    level: 80,
-    itemLevel: 608,
-    faction: 'Horde',
-    race: 'Blood Elf',
-  },
-  {
-    id: 'char-5',
-    name: 'Shadowmelody',
-    realm: 'Moon Guard',
-    region: 'us',
-    class: 'Priest',
-    spec: 'Shadow',
-    level: 80,
-    itemLevel: 602,
-    faction: 'Alliance',
-    race: 'Night Elf',
-  },
-];
-
-export const MOCK_WEEKLY_ACTIVITIES: WeeklyActivity[] = [
+export const DEFAULT_WEEKLY_ACTIVITIES: WeeklyActivity[] = [
   {
     id: 'act-world-boss',
     title: 'Weekly World Boss: Kordac',
@@ -147,7 +83,7 @@ export const MOCK_WEEKLY_ACTIVITIES: WeeklyActivity[] = [
   },
 ];
 
-export const MOCK_RAIDS: RaidLockout[] = [
+export const RAID_LOCKOUTS: RaidLockout[] = [
   {
     id: 'raid-nerubar',
     name: "Nerub-ar Palace",
@@ -162,7 +98,7 @@ export const MOCK_RAIDS: RaidLockout[] = [
     name: 'Icecrown Citadel (25 Heroic)',
     expansion: 'Wrath of the Lich King',
     bossCount: 12,
-    difficulties: ['Mythic'], // Solvable legacy lockout
+    difficulties: ['Mythic'],
     notableDrop: "Invincible's Reins (Lich King)",
     isCurrentTier: false,
   },
@@ -213,7 +149,7 @@ export const MOCK_RAIDS: RaidLockout[] = [
   },
 ];
 
-export const MOCK_MOUNTS: MountItem[] = [
+export const DEFAULT_MOUNTS: MountItem[] = [
   {
     id: 'mount-invincible',
     name: "Invincible's Reins",
@@ -226,7 +162,7 @@ export const MOCK_MOUNTS: MountItem[] = [
     notes: 'Teleport to Dalaran (Northrend), fly directly to Icecrown. Run straight to LK via teleporter.',
     wowheadUrl: 'https://www.wowhead.com/item=50818/invincibles-reins',
     owned: false,
-    isWishlist: true,
+    isWishlist: false,
   },
   {
     id: 'mount-ashes',
@@ -239,7 +175,7 @@ export const MOCK_MOUNTS: MountItem[] = [
     dropRate: '~1.7%',
     notes: 'Quick run in Netherstorm, Outland. Clear weapons phase then burst Kael down.',
     wowheadUrl: 'https://www.wowhead.com/item=32458/ashes-of-alar',
-    owned: true,
+    owned: false,
     isWishlist: false,
   },
   {
@@ -254,7 +190,7 @@ export const MOCK_MOUNTS: MountItem[] = [
     notes: 'Do not talk to any keepers before engaging Yogg-Saron to ensure 0-Light difficulty.',
     wowheadUrl: 'https://www.wowhead.com/item=45693/mimirons-head',
     owned: false,
-    isWishlist: true,
+    isWishlist: false,
   },
   {
     id: 'mount-midnight',
@@ -268,7 +204,7 @@ export const MOCK_MOUNTS: MountItem[] = [
     notes: 'Enter the front door of lower Karazhan, head down into stables. First boss!',
     wowheadUrl: 'https://www.wowhead.com/item=142236/midnights-eternal-reins',
     owned: false,
-    isWishlist: true,
+    isWishlist: false,
   },
   {
     id: 'mount-urzul',
@@ -282,7 +218,7 @@ export const MOCK_MOUNTS: MountItem[] = [
     notes: 'Skip quest available if completed 4 times previously on any character.',
     wowheadUrl: 'https://www.wowhead.com/item=152816/shackled-urzul',
     owned: false,
-    isWishlist: true,
+    isWishlist: false,
   },
   {
     id: 'mount-skyrazor',
@@ -296,7 +232,7 @@ export const MOCK_MOUNTS: MountItem[] = [
     notes: 'Current expansion raid finale mount. Unlocks dynamic flight customization.',
     wowheadUrl: 'https://www.wowhead.com/item=224151/reins-of-the-ascendant-skyrazor',
     owned: false,
-    isWishlist: true,
+    isWishlist: false,
   },
   {
     id: 'mount-soaring-spelltome',
@@ -309,7 +245,7 @@ export const MOCK_MOUNTS: MountItem[] = [
     dropRate: '100% Achievement',
     notes: 'Account-wide flying book mount. Requires one completion per archetype.',
     wowheadUrl: 'https://www.wowhead.com/item=186445/soaring-spelltome',
-    owned: true,
+    owned: false,
     isWishlist: false,
   },
   {
@@ -328,7 +264,7 @@ export const MOCK_MOUNTS: MountItem[] = [
   },
 ];
 
-export const MOCK_PETS: PetItem[] = [
+export const DEFAULT_PETS: PetItem[] = [
   {
     id: 'pet-anubisath',
     name: 'Anubisath Idol',
@@ -339,7 +275,7 @@ export const MOCK_PETS: PetItem[] = [
     zone: 'Temple of Ahn’Qiraj (AQ40)',
     notes: 'Twin Emperors drop. One of the strongest solo battle pets in the game with Sandstorm + Deflection.',
     wowheadUrl: 'https://www.wowhead.com/item=93030/anubisath-idol',
-    owned: true,
+    owned: false,
     level: 25,
     rarity: 'Rare',
   },
@@ -353,7 +289,7 @@ export const MOCK_PETS: PetItem[] = [
     zone: 'Blackwing Lair',
     notes: 'Chromaggus drop. Essential combo pet for Howl + Surge of Power.',
     wowheadUrl: 'https://www.wowhead.com/item=93032/chrominius',
-    owned: true,
+    owned: false,
     level: 25,
     rarity: 'Rare',
   },
@@ -393,7 +329,7 @@ export const MOCK_PETS: PetItem[] = [
     zone: 'Blasted Lands',
     notes: 'Wind-Up + Supercharge delivers devastating burst damage against Beast targets.',
     wowheadUrl: 'https://www.wowhead.com/item=111660/iron-starlette',
-    owned: true,
+    owned: false,
     level: 25,
     rarity: 'Rare',
   },
@@ -411,112 +347,3 @@ export const MOCK_PETS: PetItem[] = [
     rarity: 'Rare',
   },
 ];
-
-export const INITIAL_PROGRESS: Record<string, CharacterProgress> = {
-  'char-1': {
-    characterId: 'char-1',
-    activitiesCompleted: {
-      'act-world-boss': true,
-      'act-spark-quest': true,
-      'act-bountiful-delves': true,
-      'act-theater-troupe': true,
-      'act-spreading-light': false,
-      'act-special-assignment': false,
-      'act-timewalking': false,
-      'act-catalyst': true,
-    },
-    raidProgress: {
-      'raid-nerubar': { Heroic: 8, Normal: 8 },
-      'raid-icc': { Mythic: 1 },
-      'raid-karazhan': { Mythic: 1 },
-    },
-    greatVault: {
-      raidBosses: 6, // 3 slots unlocked
-      dungeons: 8,   // 3 slots unlocked
-      delves: 8,     // 3 slots unlocked
-    },
-    notes: 'Ready for weekly mythic+ vault push! Need 2 more Hallowfall keyflames.',
-  },
-  'char-2': {
-    characterId: 'char-2',
-    activitiesCompleted: {
-      'act-world-boss': true,
-      'act-spark-quest': true,
-      'act-bountiful-delves': false,
-      'act-theater-troupe': false,
-      'act-spreading-light': false,
-      'act-special-assignment': true,
-      'act-timewalking': false,
-      'act-catalyst': true,
-    },
-    raidProgress: {
-      'raid-nerubar': { Normal: 6 },
-      'raid-icc': { Mythic: 1 },
-    },
-    greatVault: {
-      raidBosses: 4, // 2 slots
-      dungeons: 4,   // 2 slots
-      delves: 4,     // 2 slots
-    },
-    notes: 'Farm ICC for Invincible attempt.',
-  },
-  'char-3': {
-    characterId: 'char-3',
-    activitiesCompleted: {
-      'act-world-boss': true,
-      'act-spark-quest': false,
-      'act-bountiful-delves': false,
-      'act-theater-troupe': false,
-      'act-spreading-light': false,
-      'act-special-assignment': false,
-      'act-timewalking': false,
-      'act-catalyst': false,
-    },
-    raidProgress: {
-      'raid-icc': { Mythic: 1 },
-    },
-    greatVault: {
-      raidBosses: 2,
-      dungeons: 1,
-      delves: 2,
-    },
-  },
-  'char-4': {
-    characterId: 'char-4',
-    activitiesCompleted: {
-      'act-world-boss': false,
-      'act-spark-quest': false,
-      'act-bountiful-delves': false,
-      'act-theater-troupe': false,
-      'act-spreading-light': false,
-      'act-special-assignment': false,
-      'act-timewalking': false,
-      'act-catalyst': false,
-    },
-    raidProgress: {},
-    greatVault: {
-      raidBosses: 0,
-      dungeons: 0,
-      delves: 0,
-    },
-  },
-  'char-5': {
-    characterId: 'char-5',
-    activitiesCompleted: {
-      'act-world-boss': false,
-      'act-spark-quest': false,
-      'act-bountiful-delves': false,
-      'act-theater-troupe': false,
-      'act-spreading-light': false,
-      'act-special-assignment': false,
-      'act-timewalking': false,
-      'act-catalyst': false,
-    },
-    raidProgress: {},
-    greatVault: {
-      raidBosses: 0,
-      dungeons: 0,
-      delves: 0,
-    },
-  },
-};

@@ -230,7 +230,7 @@ export default function BnetSettingsModal({
 
             <button
               onClick={() => {
-                if (confirm('Reset all checklist progress and characters back to original sample data?')) {
+                if (confirm('Clear all stored characters, progress, and checklist data for a fresh start?')) {
                   onResetToDefaults();
                   onClose();
                 }
@@ -238,7 +238,7 @@ export default function BnetSettingsModal({
               className="flex items-center gap-1.5 text-xs px-3 py-1.5 bg-rose-950/30 hover:bg-rose-950/50 text-rose-300 rounded-lg border border-rose-900/40 transition ml-auto"
             >
               <RotateCcw className="w-3.5 h-3.5" />
-              <span>Reset to Sample Data</span>
+              <span>Clear All Local Data</span>
             </button>
           </div>
         </div>

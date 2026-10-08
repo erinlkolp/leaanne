@@ -1,12 +1,12 @@
 import { Character, CharacterProgress, MountItem, PetItem } from '../types/wow';
-import { MOCK_CHARACTERS, INITIAL_PROGRESS, MOCK_MOUNTS, MOCK_PETS } from '../data/mockData';
+import { DEFAULT_MOUNTS, DEFAULT_PETS } from '../data/gameData';
 
 const STORAGE_KEYS = {
-  CHARACTERS: 'leaanne_wow_characters',
-  PROGRESS: 'leaanne_wow_progress',
-  MOUNTS: 'leaanne_wow_mounts',
-  PETS: 'leaanne_wow_pets',
-  SELECTED_CHAR: 'leaanne_wow_selected_char',
+  CHARACTERS: 'leaanne_wow_characters_v2',
+  PROGRESS: 'leaanne_wow_progress_v2',
+  MOUNTS: 'leaanne_wow_mounts_v2',
+  PETS: 'leaanne_wow_pets_v2',
+  SELECTED_CHAR: 'leaanne_wow_selected_char_v2',
   REGION: 'leaanne_wow_region',
   BNET_CREDS: 'leaanne_wow_bnet_creds',
 };
@@ -18,13 +18,20 @@ export interface BnetCredentials {
 }
 
 export function loadCharacters(): Character[] {
-  if (typeof window === 'undefined') return MOCK_CHARACTERS;
+  if (typeof window === 'undefined') return [];
   const stored = localStorage.getItem(STORAGE_KEYS.CHARACTERS);
-  if (!stored) return MOCK_CHARACTERS;
+  if (!stored) return [];
   try {
-    return JSON.parse(stored);
+    const parsed = JSON.parse(stored);
+    if (!Array.isArray(parsed)) return [];
+    // Filter out any legacy mock character IDs
+    return parsed.filter(
+      (c: Character) =>
+        !['char-1', 'char-2', 'char-3', 'char-4', 'char-5'].includes(c.id) &&
+        !['Silvermist', 'Aurorastrike', 'Sunwhisper', 'Shadowmelody'].includes(c.name)
+    );
   } catch {
-    return MOCK_CHARACTERS;
+    return [];
   }
 }
 
@@ -34,13 +41,13 @@ export function saveCharacters(chars: Character[]): void {
 }
 
 export function loadProgress(): Record<string, CharacterProgress> {
-  if (typeof window === 'undefined') return INITIAL_PROGRESS;
+  if (typeof window === 'undefined') return {};
   const stored = localStorage.getItem(STORAGE_KEYS.PROGRESS);
-  if (!stored) return INITIAL_PROGRESS;
+  if (!stored) return {};
   try {
     return JSON.parse(stored);
   } catch {
-    return INITIAL_PROGRESS;
+    return {};
   }
 }
 
@@ -50,13 +57,13 @@ export function saveProgress(progress: Record<string, CharacterProgress>): void 
 }
 
 export function loadMounts(): MountItem[] {
-  if (typeof window === 'undefined') return MOCK_MOUNTS;
+  if (typeof window === 'undefined') return DEFAULT_MOUNTS;
   const stored = localStorage.getItem(STORAGE_KEYS.MOUNTS);
-  if (!stored) return MOCK_MOUNTS;
+  if (!stored) return DEFAULT_MOUNTS;
   try {
     return JSON.parse(stored);
   } catch {
-    return MOCK_MOUNTS;
+    return DEFAULT_MOUNTS;
   }
 }
 
@@ -66,13 +73,13 @@ export function saveMounts(mounts: MountItem[]): void {
 }
 
 export function loadPets(): PetItem[] {
-  if (typeof window === 'undefined') return MOCK_PETS;
+  if (typeof window === 'undefined') return DEFAULT_PETS;
   const stored = localStorage.getItem(STORAGE_KEYS.PETS);
-  if (!stored) return MOCK_PETS;
+  if (!stored) return DEFAULT_PETS;
   try {
     return JSON.parse(stored);
   } catch {
-    return MOCK_PETS;
+    return DEFAULT_PETS;
   }
 }
 
@@ -82,8 +89,8 @@ export function savePets(pets: PetItem[]): void {
 }
 
 export function loadSelectedCharId(): string {
-  if (typeof window === 'undefined') return 'char-1';
-  return localStorage.getItem(STORAGE_KEYS.SELECTED_CHAR) || 'char-1';
+  if (typeof window === 'undefined') return '';
+  return localStorage.getItem(STORAGE_KEYS.SELECTED_CHAR) || '';
 }
 
 export function saveSelectedCharId(id: string): void {
@@ -117,4 +124,19 @@ export function loadBnetCredentials(): BnetCredentials {
 export function saveBnetCredentials(creds: BnetCredentials): void {
   if (typeof window === 'undefined') return;
   localStorage.setItem(STORAGE_KEYS.BNET_CREDS, JSON.stringify(creds));
+}
+
+export function clearAllLocalData(): void {
+  if (typeof window === 'undefined') return;
+  localStorage.removeItem(STORAGE_KEYS.CHARACTERS);
+  localStorage.removeItem(STORAGE_KEYS.PROGRESS);
+  localStorage.removeItem(STORAGE_KEYS.MOUNTS);
+  localStorage.removeItem(STORAGE_KEYS.PETS);
+  localStorage.removeItem(STORAGE_KEYS.SELECTED_CHAR);
+  // Also clean up any v1 legacy keys
+  localStorage.removeItem('leaanne_wow_characters');
+  localStorage.removeItem('leaanne_wow_progress');
+  localStorage.removeItem('leaanne_wow_mounts');
+  localStorage.removeItem('leaanne_wow_pets');
+  localStorage.removeItem('leaanne_wow_selected_char');
 }

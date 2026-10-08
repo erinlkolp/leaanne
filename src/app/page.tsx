@@ -23,16 +23,18 @@ import {
   loadRegion,
   saveRegion,
   loadBnetCredentials,
+  clearAllLocalData,
 } from '../lib/storage';
-import { MOCK_CHARACTERS, INITIAL_PROGRESS, MOCK_MOUNTS, MOCK_PETS } from '../data/mockData';
+import { DEFAULT_MOUNTS, DEFAULT_PETS } from '../data/gameData';
+import { Shield, Sparkles, UserPlus } from 'lucide-react';
 
 export default function Home() {
   const [isClient, setIsClient] = useState(false);
-  const [characters, setCharacters] = useState<Character[]>(MOCK_CHARACTERS);
-  const [selectedCharId, setSelectedCharId] = useState<string>('char-1');
-  const [progress, setProgress] = useState<Record<string, CharacterProgress>>(INITIAL_PROGRESS);
-  const [mounts, setMounts] = useState<MountItem[]>(MOCK_MOUNTS);
-  const [pets, setPets] = useState<PetItem[]>(MOCK_PETS);
+  const [characters, setCharacters] = useState<Character[]>([]);
+  const [selectedCharId, setSelectedCharId] = useState<string>('');
+  const [progress, setProgress] = useState<Record<string, CharacterProgress>>({});
+  const [mounts, setMounts] = useState<MountItem[]>(DEFAULT_MOUNTS);
+  const [pets, setPets] = useState<PetItem[]>(DEFAULT_PETS);
   const [region, setRegion] = useState<'us' | 'eu'>('us');
 
   const [activeTab, setActiveTab] = useState<'weekly' | 'mounts' | 'roster' | 'settings'>('weekly');
@@ -43,8 +45,18 @@ export default function Home() {
   // Load from local storage on mount
   useEffect(() => {
     setIsClient(true);
-    setCharacters(loadCharacters());
-    setSelectedCharId(loadSelectedCharId());
+    const loadedChars = loadCharacters();
+    setCharacters(loadedChars);
+
+    const loadedSelected = loadSelectedCharId();
+    if (loadedSelected && loadedChars.some((c) => c.id === loadedSelected)) {
+      setSelectedCharId(loadedSelected);
+    } else if (loadedChars.length > 0) {
+      setSelectedCharId(loadedChars[0].id);
+    } else {
+      setSelectedCharId('');
+    }
+
     setProgress(loadProgress());
     setMounts(loadMounts());
     setPets(loadPets());
@@ -82,19 +94,22 @@ export default function Home() {
     saveRegion(newRegion);
   };
 
-  const activeCharacter =
-    characters.find((c) => c.id === selectedCharId) || characters[0] || MOCK_CHARACTERS[0];
+  const activeCharacter: Character | null =
+    characters.find((c) => c.id === selectedCharId) || (characters.length > 0 ? characters[0] : null);
 
-  const currentProg = progress[activeCharacter.id] || {
-    characterId: activeCharacter.id,
-    activitiesCompleted: {},
-    raidProgress: {},
-    greatVault: { raidBosses: 0, dungeons: 0, delves: 0 },
-    notes: '',
-  };
+  const currentProg = activeCharacter && progress[activeCharacter.id]
+    ? progress[activeCharacter.id]
+    : {
+        characterId: activeCharacter?.id || '',
+        activitiesCompleted: {},
+        raidProgress: {},
+        greatVault: { raidBosses: 0, dungeons: 0, delves: 0 },
+        notes: '',
+      };
 
   // Weekly Activity toggle
   const handleUpdateActivity = (actId: string, completed: boolean) => {
+    if (!activeCharacter) return;
     const updated = {
       ...progress,
       [activeCharacter.id]: {
@@ -110,6 +125,7 @@ export default function Home() {
 
   // Vault updates
   const handleUpdateVault = (type: 'raidBosses' | 'dungeons' | 'delves', value: number) => {
+    if (!activeCharacter) return;
     const updated = {
       ...progress,
       [activeCharacter.id]: {
@@ -125,6 +141,7 @@ export default function Home() {
 
   // Raid lockout updates
   const handleUpdateRaidLockout = (raidId: string, difficulty: string, bosses: number) => {
+    if (!activeCharacter) return;
     const prevRaidProg = currentProg.raidProgress[raidId] || {};
     const updated = {
       ...progress,
@@ -144,6 +161,7 @@ export default function Home() {
 
   // Character notes update
   const handleUpdateNotes = (notes: string) => {
+    if (!activeCharacter) return;
     const updated = {
       ...progress,
       [activeCharacter.id]: {
@@ -191,7 +209,11 @@ export default function Home() {
 
   // Reset week
   const handleResetWeek = () => {
-    if (!confirm('Start a fresh week? This will clear weekly quest checkmarks, Vault numbers, and lockout checkmarks across all alts.')) {
+    if (
+      !confirm(
+        'Start a fresh week? This will clear weekly quest checkmarks, Vault numbers, and lockout checkmarks across all alts.'
+      )
+    ) {
       return;
     }
 
@@ -215,13 +237,14 @@ export default function Home() {
     updateMounts(resetMounts);
   };
 
-  // Reset to default sample data
+  // Clear all local data
   const handleResetToDefaults = () => {
-    updateCharacters(MOCK_CHARACTERS);
-    updateProgress(INITIAL_PROGRESS);
-    updateMounts(MOCK_MOUNTS);
-    updatePets(MOCK_PETS);
-    setSelectedCharId('char-1');
+    clearAllLocalData();
+    setCharacters([]);
+    setSelectedCharId('');
+    setProgress({});
+    setMounts(DEFAULT_MOUNTS);
+    setPets(DEFAULT_PETS);
   };
 
   // Export JSON
@@ -269,19 +292,23 @@ export default function Home() {
     const updated = [...characters, newChar];
     updateCharacters(updated);
     setSelectedCharId(newChar.id);
+    saveSelectedCharId(newChar.id);
   };
 
   // Delete character
   const handleDeleteCharacter = (charId: string) => {
     const updated = characters.filter((c) => c.id !== charId);
     updateCharacters(updated);
-    if (selectedCharId === charId && updated.length > 0) {
-      setSelectedCharId(updated[0].id);
+    if (selectedCharId === charId) {
+      const nextId = updated.length > 0 ? updated[0].id : '';
+      setSelectedCharId(nextId);
+      saveSelectedCharId(nextId);
     }
   };
 
   // Sync active character directly with Battle.net API
   const handleSyncActiveCharacter = async () => {
+    if (!activeCharacter) return;
     setIsSyncingChar(true);
     try {
       const creds = loadBnetCredentials();
@@ -369,6 +396,20 @@ export default function Home() {
 
   const ownedMountsCount = mounts.filter((m) => m.owned).length;
 
+  // Placeholder character for collection tab if roster is empty
+  const fallbackMountChar: Character = activeCharacter || {
+    id: 'placeholder',
+    name: 'Character',
+    realm: '',
+    region,
+    class: 'Druid',
+    spec: '',
+    level: 80,
+    itemLevel: 0,
+    faction: 'Alliance',
+    race: '',
+  };
+
   return (
     <div className="min-h-screen bg-[#0a0e17] text-slate-100 flex flex-col font-sans selection:bg-amber-500/30 selection:text-amber-200">
       {/* Header */}
@@ -387,7 +428,7 @@ export default function Home() {
       {/* Character Selector Bar (shown on weekly and mounts tabs) */}
       <CharacterBar
         characters={characters}
-        selectedCharId={activeCharacter.id}
+        selectedCharId={activeCharacter?.id || ''}
         onSelectCharacter={handleSelectCharacter}
         onOpenAddModal={() => setIsAddCharOpen(true)}
         onDeleteCharacter={handleDeleteCharacter}
@@ -398,21 +439,52 @@ export default function Home() {
       {/* Main Content Area */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {activeTab === 'weekly' && (
-          <WeeklyLockoutsView
-            character={activeCharacter}
-            progress={currentProg}
-            onUpdateActivity={handleUpdateActivity}
-            onUpdateVault={handleUpdateVault}
-            onUpdateRaidLockout={handleUpdateRaidLockout}
-            onUpdateNotes={handleUpdateNotes}
-          />
+          activeCharacter ? (
+            <WeeklyLockoutsView
+              character={activeCharacter}
+              progress={currentProg}
+              onUpdateActivity={handleUpdateActivity}
+              onUpdateVault={handleUpdateVault}
+              onUpdateRaidLockout={handleUpdateRaidLockout}
+              onUpdateNotes={handleUpdateNotes}
+            />
+          ) : (
+            <div className="bg-[#121829] border border-slate-800 rounded-3xl p-8 sm:p-12 text-center max-w-2xl mx-auto shadow-2xl my-8">
+              <div className="w-16 h-16 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-3xl mx-auto mb-4 shadow-inner">
+                🛡️
+              </div>
+              <h2 className="text-2xl font-bold text-white tracking-tight">
+                Welcome to LeaAnne&apos;s WoW Companion!
+              </h2>
+              <p className="text-xs sm:text-sm text-slate-300 mt-2 max-w-lg mx-auto leading-relaxed">
+                Track weekly world bosses, Great Vault progression, raid lockouts, and rare mounts.
+                Add your character to begin tracking your weekly adventures.
+              </p>
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mt-6">
+                <button
+                  onClick={() => setIsAddCharOpen(true)}
+                  className="w-full sm:w-auto px-5 py-2.5 rounded-xl font-bold text-xs bg-amber-500 hover:bg-amber-400 text-slate-950 transition shadow-lg flex items-center justify-center gap-2"
+                >
+                  <UserPlus className="w-4 h-4" />
+                  <span>Add Character / Import from Battle.net</span>
+                </button>
+                <button
+                  onClick={() => setActiveTab('mounts')}
+                  className="w-full sm:w-auto px-5 py-2.5 rounded-xl font-semibold text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition flex items-center justify-center gap-2"
+                >
+                  <Sparkles className="w-4 h-4 text-purple-400" />
+                  <span>Browse Mount &amp; Pet Collector</span>
+                </button>
+              </div>
+            </div>
+          )
         )}
 
         {activeTab === 'mounts' && (
           <MountPetTrackerView
             mounts={mounts}
             pets={pets}
-            activeCharacter={activeCharacter}
+            activeCharacter={fallbackMountChar}
             onToggleMountOwned={handleToggleMountOwned}
             onToggleMountWishlist={handleToggleMountWishlist}
             onToggleMountAttempt={handleToggleMountAttempt}
@@ -430,6 +502,7 @@ export default function Home() {
               handleSelectCharacter(id);
               setActiveTab('weekly');
             }}
+            onOpenAddModal={() => setIsAddCharOpen(true)}
           />
         )}
       </main>
