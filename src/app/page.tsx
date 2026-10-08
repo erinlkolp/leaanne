@@ -22,6 +22,7 @@ import {
   saveSelectedCharId,
   loadRegion,
   saveRegion,
+  loadBnetCredentials,
 } from '../lib/storage';
 import { MOCK_CHARACTERS, INITIAL_PROGRESS, MOCK_MOUNTS, MOCK_PETS } from '../data/mockData';
 
@@ -37,6 +38,7 @@ export default function Home() {
   const [activeTab, setActiveTab] = useState<'weekly' | 'mounts' | 'roster' | 'settings'>('weekly');
   const [isAddCharOpen, setIsAddCharOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isSyncingChar, setIsSyncingChar] = useState(false);
 
   // Load from local storage on mount
   useEffect(() => {
@@ -278,6 +280,82 @@ export default function Home() {
     }
   };
 
+  // Sync active character directly with Battle.net API
+  const handleSyncActiveCharacter = async () => {
+    setIsSyncingChar(true);
+    try {
+      const creds = loadBnetCredentials();
+      const res = await fetch('/api/blizzard/sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          clientId: creds.clientId,
+          clientSecret: creds.clientSecret,
+          region: activeCharacter.region || creds.region,
+          characterName: activeCharacter.name,
+          realm: activeCharacter.realm,
+          action: 'character',
+        }),
+      });
+
+      const data = await res.json();
+      if (data.success && data.character) {
+        const c = data.character;
+        const updatedChars = characters.map((char) =>
+          char.id === activeCharacter.id
+            ? {
+                ...char,
+                level: c.level || char.level,
+                itemLevel: c.itemLevel || c.averageItemLevel || char.itemLevel,
+                spec: c.spec || char.spec,
+                class: c.class || char.class,
+                avatarUrl: c.avatarUrl || char.avatarUrl,
+                renderUrl: c.renderUrl || char.renderUrl,
+              }
+            : char
+        );
+        updateCharacters(updatedChars);
+
+        if (data.raidProgress && Object.keys(data.raidProgress).length > 0) {
+          updateProgress({
+            ...progress,
+            [activeCharacter.id]: {
+              ...currentProg,
+              raidProgress: {
+                ...currentProg.raidProgress,
+                ...data.raidProgress,
+              },
+            },
+          });
+        }
+        alert(`✓ Synced ${c.name} from Battle.net! Current item level: ${c.itemLevel || c.averageItemLevel}`);
+      } else {
+        alert(`✗ Could not sync character: ${data.error || 'Unknown error'}`);
+      }
+    } catch (err: any) {
+      alert(`✗ Network error: ${err.message}`);
+    } finally {
+      setIsSyncingChar(false);
+    }
+  };
+
+  // Sync account mounts from Battle.net
+  const handleSyncMountsFromBnet = (ownedMountNames: string[]) => {
+    const normalizedOwned = new Set(ownedMountNames.map((n) => n.toLowerCase().trim()));
+    const updatedMounts = mounts.map((m) => {
+      const isOwned =
+        m.owned ||
+        normalizedOwned.has(m.name.toLowerCase().trim()) ||
+        Array.from(normalizedOwned).some(
+          (ownedName) =>
+            ownedName.includes(m.name.toLowerCase().trim()) ||
+            m.name.toLowerCase().trim().includes(ownedName)
+        );
+      return isOwned ? { ...m, owned: true } : m;
+    });
+    updateMounts(updatedMounts);
+  };
+
   if (!isClient) {
     return (
       <div className="min-h-screen bg-[#0a0e17] text-slate-100 flex items-center justify-center">
@@ -313,6 +391,8 @@ export default function Home() {
         onSelectCharacter={handleSelectCharacter}
         onOpenAddModal={() => setIsAddCharOpen(true)}
         onDeleteCharacter={handleDeleteCharacter}
+        onSyncCharacter={handleSyncActiveCharacter}
+        isSyncing={isSyncingChar}
       />
 
       {/* Main Content Area */}
@@ -337,6 +417,7 @@ export default function Home() {
             onToggleMountWishlist={handleToggleMountWishlist}
             onToggleMountAttempt={handleToggleMountAttempt}
             onTogglePetOwned={handleTogglePetOwned}
+            onSyncMountsFromBnet={handleSyncMountsFromBnet}
           />
         )}
 

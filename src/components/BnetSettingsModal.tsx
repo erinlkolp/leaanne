@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useState } from 'react';
-import { X, Key, ExternalLink, Download, Upload, CheckCircle2, RotateCcw } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { X, Key, ExternalLink, Download, Upload, CheckCircle2, RotateCcw, RefreshCw } from 'lucide-react';
+import { loadBnetCredentials, saveBnetCredentials } from '../lib/storage';
 
 interface BnetSettingsModalProps {
   isOpen: boolean;
@@ -20,21 +21,32 @@ export default function BnetSettingsModal({
 }: BnetSettingsModalProps) {
   const [clientId, setClientId] = useState('');
   const [clientSecret, setClientSecret] = useState('');
-  const [region, setRegion] = useState('us');
+  const [region, setRegion] = useState<'us' | 'eu'>('us');
   const [testStatus, setTestStatus] = useState<string | null>(null);
-
+  const [testSuccess, setTestSuccess] = useState<boolean | null>(null);
   const [isTesting, setIsTesting] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      const saved = loadBnetCredentials();
+      if (saved.clientId) setClientId(saved.clientId);
+      if (saved.clientSecret) setClientSecret(saved.clientSecret);
+      if (saved.region) setRegion(saved.region);
+    }
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
   const handleTestConnection = async () => {
     if (!clientId.trim() || !clientSecret.trim()) {
       setTestStatus('Please enter both Client ID and Client Secret.');
+      setTestSuccess(false);
       return;
     }
 
     setIsTesting(true);
     setTestStatus('Contacting Blizzard OAuth Token endpoint...');
+    setTestSuccess(null);
 
     try {
       const res = await fetch('/api/blizzard/sync', {
@@ -44,17 +56,26 @@ export default function BnetSettingsModal({
           clientId: clientId.trim(),
           clientSecret: clientSecret.trim(),
           region,
+          action: 'verify',
         }),
       });
 
       const data = await res.json();
       if (data.success) {
-        setTestStatus('✓ Success! Connected and verified Battle.net API credentials.');
+        saveBnetCredentials({
+          clientId: clientId.trim(),
+          clientSecret: clientSecret.trim(),
+          region,
+        });
+        setTestStatus('✓ Success! Connected and verified Battle.net API credentials. Saved to local browser storage.');
+        setTestSuccess(true);
       } else {
         setTestStatus(`✗ Error: ${data.error || 'Authentication failed'}`);
+        setTestSuccess(false);
       }
     } catch (err: any) {
       setTestStatus(`✗ Network error: ${err.message}`);
+      setTestSuccess(false);
     } finally {
       setIsTesting(false);
     }
@@ -76,7 +97,7 @@ export default function BnetSettingsModal({
         </div>
 
         <p className="text-xs text-slate-300 leading-relaxed mb-4">
-          This dashboard can connect directly to Blizzard&apos;s Official Battle.net REST API to automatically fetch live character gear, raid lockouts, and account-wide collections.
+          Connect directly to Blizzard&apos;s Official Battle.net REST API to automatically fetch live character gear, raid lockouts, and account-wide collections.
         </p>
 
         {/* 3-Step Setup Guide */}
@@ -96,7 +117,7 @@ export default function BnetSettingsModal({
           <ol className="list-decimal list-inside text-slate-400 space-y-1">
             <li>Log in to <strong className="text-slate-200">develop.battle.net</strong> with your Blizzard account.</li>
             <li>Click <strong className="text-slate-200">API Access</strong> &rarr; <strong className="text-slate-200">Create Client</strong>.</li>
-            <li>Set client name to &quot;WoW Companion&quot; and redirect URI to <code className="text-amber-300">http://localhost:3000</code>.</li>
+            <li>Set client name to &quot;LeaAnne WoW Companion&quot; and redirect URI to <code className="text-amber-300">http://localhost:3000</code>.</li>
             <li>Copy your <strong className="text-slate-200">Client ID</strong> and <strong className="text-slate-200">Client Secret</strong> below.</li>
           </ol>
         </div>
@@ -112,7 +133,7 @@ export default function BnetSettingsModal({
               value={clientId}
               onChange={(e) => setClientId(e.target.value)}
               placeholder="e.g., 4f18d... (from develop.battle.net)"
-              className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-sky-400"
+              className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-sky-400 font-mono"
             />
           </div>
 
@@ -125,22 +146,54 @@ export default function BnetSettingsModal({
               value={clientSecret}
               onChange={(e) => setClientSecret(e.target.value)}
               placeholder="••••••••••••••••••••••••••••"
-              className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-sky-400"
+              className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-sky-400 font-mono"
             />
           </div>
 
-          <div className="flex gap-2">
+          <div>
+            <label className="block text-xs font-semibold text-slate-300 mb-1">
+              Default Region
+            </label>
+            <select
+              value={region}
+              onChange={(e) => setRegion(e.target.value as 'us' | 'eu')}
+              className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-sky-400"
+            >
+              <option value="us">US / Americas (us.api.blizzard.com)</option>
+              <option value="eu">EU / Europe (eu.api.blizzard.com)</option>
+            </select>
+          </div>
+
+          <div className="flex gap-2 pt-1">
             <button
               onClick={handleTestConnection}
-              className="flex-1 py-2 text-xs font-bold bg-sky-600 hover:bg-sky-500 text-white rounded-lg transition"
+              disabled={isTesting}
+              className="flex-1 py-2 text-xs font-bold bg-sky-600 hover:bg-sky-500 disabled:bg-slate-700 text-white rounded-lg transition flex items-center justify-center gap-1.5"
             >
-              Test &amp; Save Credentials
+              {isTesting ? (
+                <>
+                  <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                  <span>Connecting...</span>
+                </>
+              ) : (
+                <span>Test &amp; Save Credentials</span>
+              )}
             </button>
           </div>
 
           {testStatus && (
-            <div className="text-xs p-2.5 rounded-lg bg-sky-950/40 border border-sky-800/50 text-sky-200 flex items-center gap-1.5">
-              <CheckCircle2 className="w-4 h-4 text-sky-400 shrink-0" />
+            <div
+              className={`text-xs p-2.5 rounded-lg border flex items-center gap-1.5 ${
+                testSuccess
+                  ? 'bg-emerald-950/40 border-emerald-850 border-emerald-700/50 text-emerald-200'
+                  : 'bg-rose-950/40 border-rose-850 border-rose-700/50 text-rose-200'
+              }`}
+            >
+              {testSuccess ? (
+                <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+              ) : (
+                <X className="w-4 h-4 text-rose-400 shrink-0" />
+              )}
               <span>{testStatus}</span>
             </div>
           )}

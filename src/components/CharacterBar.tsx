@@ -3,7 +3,7 @@
 import React from 'react';
 import { Character } from '../types/wow';
 import { CLASS_COLORS } from '../data/mockData';
-import { UserPlus, Star, Trash2 } from 'lucide-react';
+import { UserPlus, Star, Trash2, RefreshCw } from 'lucide-react';
 
 interface CharacterBarProps {
   characters: Character[];
@@ -11,6 +11,8 @@ interface CharacterBarProps {
   onSelectCharacter: (id: string) => void;
   onOpenAddModal: () => void;
   onDeleteCharacter: (id: string) => void;
+  onSyncCharacter: () => void;
+  isSyncing: boolean;
 }
 
 export default function CharacterBar({
@@ -19,6 +21,8 @@ export default function CharacterBar({
   onSelectCharacter,
   onOpenAddModal,
   onDeleteCharacter,
+  onSyncCharacter,
+  isSyncing,
 }: CharacterBarProps) {
   return (
     <div className="bg-[#101728]/80 border-b border-slate-800/80 px-4 sm:px-6 lg:px-8 py-3">
@@ -49,11 +53,19 @@ export default function CharacterBar({
                       : 'bg-slate-900/60 text-slate-300 hover:bg-slate-800 hover:text-white'
                   }`}
                 >
-                  {/* Class indicator dot */}
-                  <span
-                    className="w-2.5 h-2.5 rounded-full shrink-0"
-                    style={{ backgroundColor: classColor }}
-                  />
+                  {/* Class indicator dot or avatar */}
+                  {char.avatarUrl ? (
+                    <img
+                      src={char.avatarUrl}
+                      alt={char.name}
+                      className="w-4 h-4 rounded-full object-cover shrink-0"
+                    />
+                  ) : (
+                    <span
+                      className="w-2.5 h-2.5 rounded-full shrink-0"
+                      style={{ backgroundColor: classColor }}
+                    />
+                  )}
 
                   <div className="text-left">
                     <div className="flex items-center gap-1.5">
@@ -97,14 +109,26 @@ export default function CharacterBar({
           })}
         </div>
 
-        {/* Add Character button */}
-        <button
-          onClick={onOpenAddModal}
-          className="flex items-center gap-1.5 text-xs font-medium bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 px-3 py-1.5 rounded-lg transition shrink-0"
-        >
-          <UserPlus className="w-3.5 h-3.5" />
-          <span>Add Alt</span>
-        </button>
+        {/* Action Buttons: Sync & Add Alt */}
+        <div className="flex items-center gap-2 shrink-0">
+          <button
+            onClick={onSyncCharacter}
+            disabled={isSyncing}
+            className="flex items-center gap-1.5 text-xs font-medium bg-sky-500/10 hover:bg-sky-500/20 text-sky-300 border border-sky-500/30 px-3 py-1.5 rounded-lg transition"
+            title="Sync this character's gear, spec, and raid lockouts from Battle.net"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin' : ''}`} />
+            <span className="hidden sm:inline">Sync Active Alt</span>
+          </button>
+
+          <button
+            onClick={onOpenAddModal}
+            className="flex items-center gap-1.5 text-xs font-medium bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 px-3 py-1.5 rounded-lg transition"
+          >
+            <UserPlus className="w-3.5 h-3.5" />
+            <span>Add Alt</span>
+          </button>
+        </div>
       </div>
     </div>
   );

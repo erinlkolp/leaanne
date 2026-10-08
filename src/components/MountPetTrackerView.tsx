@@ -2,7 +2,8 @@
 
 import React, { useState } from 'react';
 import { MountItem, PetItem, Character } from '../types/wow';
-import { Sparkles, Star, ExternalLink, Check, Search, Compass, Heart, AlertCircle } from 'lucide-react';
+import { Sparkles, Star, ExternalLink, Check, Search, Compass, Heart, AlertCircle, RefreshCw } from 'lucide-react';
+import { loadBnetCredentials } from '../lib/storage';
 
 interface MountPetTrackerViewProps {
   mounts: MountItem[];
@@ -12,6 +13,7 @@ interface MountPetTrackerViewProps {
   onToggleMountWishlist: (mountId: string) => void;
   onToggleMountAttempt: (mountId: string, charId: string) => void;
   onTogglePetOwned: (petId: string) => void;
+  onSyncMountsFromBnet: (ownedMountNames: string[]) => void;
 }
 
 export default function MountPetTrackerView({
@@ -22,10 +24,47 @@ export default function MountPetTrackerView({
   onToggleMountWishlist,
   onToggleMountAttempt,
   onTogglePetOwned,
+  onSyncMountsFromBnet,
 }: MountPetTrackerViewProps) {
   const [activeTab, setActiveTab] = useState<'mounts' | 'pets'>('mounts');
   const [searchQuery, setSearchQuery] = useState('');
   const [filterMode, setFilterMode] = useState<'all' | 'unowned' | 'wishlist' | 'farmRoute'>('farmRoute');
+  const [isSyncingMounts, setIsSyncingMounts] = useState(false);
+  const [mountSyncMsg, setMountSyncMsg] = useState<string | null>(null);
+
+  const handleSyncMounts = async () => {
+    setIsSyncingMounts(true);
+    setMountSyncMsg('Querying account mount collection from Battle.net...');
+
+    try {
+      const creds = loadBnetCredentials();
+      const res = await fetch('/api/blizzard/sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          clientId: creds.clientId,
+          clientSecret: creds.clientSecret,
+          region: activeCharacter.region || creds.region,
+          characterName: activeCharacter.name,
+          realm: activeCharacter.realm,
+          action: 'mounts',
+        }),
+      });
+
+      const data = await res.json();
+      if (data.success && data.ownedMounts) {
+        const names: string[] = data.ownedMounts.map((m: any) => m.name);
+        onSyncMountsFromBnet(names);
+        setMountSyncMsg(`✓ Synced! Found ${data.totalMounts} account mounts on Battle.net.`);
+      } else {
+        setMountSyncMsg(`✗ ${data.error || 'Failed to fetch mounts from Battle.net'}`);
+      }
+    } catch (err: any) {
+      setMountSyncMsg(`✗ Network error: ${err.message}`);
+    } finally {
+      setIsSyncingMounts(false);
+    }
+  };
 
   // Mount filter logic
   const filteredMounts = mounts.filter((m) => {
@@ -174,8 +213,32 @@ export default function MountPetTrackerView({
             >
               All Items
             </button>
+
+            {activeTab === 'mounts' && (
+              <button
+                onClick={handleSyncMounts}
+                disabled={isSyncingMounts}
+                className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border font-semibold bg-sky-600/30 hover:bg-sky-600/50 border-sky-500/40 text-sky-200 transition"
+                title={`Sync account mount collection from Battle.net using ${activeCharacter.name}`}
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${isSyncingMounts ? 'animate-spin' : ''}`} />
+                <span>Sync with Battle.net</span>
+              </button>
+            )}
           </div>
         </div>
+
+        {mountSyncMsg && (
+          <div className="mt-3 p-2.5 rounded-xl bg-slate-900/80 border border-slate-800 text-xs text-slate-200 flex items-center justify-between">
+            <span>{mountSyncMsg}</span>
+            <button
+              onClick={() => setMountSyncMsg(null)}
+              className="text-slate-500 hover:text-slate-300 ml-2"
+            >
+              &times;
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Mounts Grid */}

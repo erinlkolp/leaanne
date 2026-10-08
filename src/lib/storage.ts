@@ -8,7 +8,14 @@ const STORAGE_KEYS = {
   PETS: 'leaanne_wow_pets',
   SELECTED_CHAR: 'leaanne_wow_selected_char',
   REGION: 'leaanne_wow_region',
+  BNET_CREDS: 'leaanne_wow_bnet_creds',
 };
+
+export interface BnetCredentials {
+  clientId: string;
+  clientSecret: string;
+  region: 'us' | 'eu';
+}
 
 export function loadCharacters(): Character[] {
   if (typeof window === 'undefined') return MOCK_CHARACTERS;
@@ -92,4 +99,22 @@ export function loadRegion(): 'us' | 'eu' {
 export function saveRegion(region: 'us' | 'eu'): void {
   if (typeof window === 'undefined') return;
   localStorage.setItem(STORAGE_KEYS.REGION, region);
+}
+
+export function loadBnetCredentials(): BnetCredentials {
+  if (typeof window === 'undefined') {
+    return { clientId: '', clientSecret: '', region: 'us' };
+  }
+  const stored = localStorage.getItem(STORAGE_KEYS.BNET_CREDS);
+  if (!stored) return { clientId: '', clientSecret: '', region: 'us' };
+  try {
+    return JSON.parse(stored);
+  } catch {
+    return { clientId: '', clientSecret: '', region: 'us' };
+  }
+}
+
+export function saveBnetCredentials(creds: BnetCredentials): void {
+  if (typeof window === 'undefined') return;
+  localStorage.setItem(STORAGE_KEYS.BNET_CREDS, JSON.stringify(creds));
 }
