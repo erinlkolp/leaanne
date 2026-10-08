@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Leaanne's WoW Companion | Lockout & Collection Tracker",
+  title: "LeaAnne's WoW Companion | Lockout & Collection Tracker",
   description: "Personalized World of Warcraft companion for weekly lockouts, Great Vault progression, and rare mount/pet collection routes.",
 };
 

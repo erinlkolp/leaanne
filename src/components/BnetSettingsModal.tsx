@@ -23,18 +23,41 @@ export default function BnetSettingsModal({
   const [region, setRegion] = useState('us');
   const [testStatus, setTestStatus] = useState<string | null>(null);
 
+  const [isTesting, setIsTesting] = useState(false);
+
   if (!isOpen) return null;
 
-  const handleTestConnection = () => {
+  const handleTestConnection = async () => {
     if (!clientId.trim() || !clientSecret.trim()) {
       setTestStatus('Please enter both Client ID and Client Secret.');
       return;
     }
 
-    setTestStatus('Testing Blizzard OAuth Token generation...');
-    setTimeout(() => {
-      setTestStatus('Credentials saved! Ready for live character & collection queries.');
-    }, 800);
+    setIsTesting(true);
+    setTestStatus('Contacting Blizzard OAuth Token endpoint...');
+
+    try {
+      const res = await fetch('/api/blizzard/sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          clientId: clientId.trim(),
+          clientSecret: clientSecret.trim(),
+          region,
+        }),
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        setTestStatus('✓ Success! Connected and verified Battle.net API credentials.');
+      } else {
+        setTestStatus(`✗ Error: ${data.error || 'Authentication failed'}`);
+      }
+    } catch (err: any) {
+      setTestStatus(`✗ Network error: ${err.message}`);
+    } finally {
+      setIsTesting(false);
+    }
   };
 
   return (

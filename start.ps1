@@ -1,4 +1,4 @@
-# Leaanne's WoW Companion - PowerShell Launcher
+# LeaAnne's WoW Companion - PowerShell Launcher
 Write-Host "========================================================" -ForegroundColor Cyan
 Write-Host "        LEAANNE'S WORLD OF WARCRAFT COMPANION" -ForegroundColor Cyan
 Write-Host "========================================================" -ForegroundColor Cyan

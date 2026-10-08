@@ -58,7 +58,7 @@ export default function Header({
             <div>
               <div className="flex items-center gap-2">
                 <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-amber-400 to-yellow-500">
-                  Leaanne&apos;s WoW Companion
+                  LeaAnne&apos;s WoW Companion
                 </h1>
                 <span className="text-[10px] uppercase font-semibold px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-300 border border-amber-500/30">
                   The War Within

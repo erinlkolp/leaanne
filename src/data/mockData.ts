@@ -19,7 +19,7 @@ export const CLASS_COLORS: Record<string, string> = {
 export const MOCK_CHARACTERS: Character[] = [
   {
     id: 'char-1',
-    name: 'Leaanne',
+    name: 'LeaAnne',
     realm: 'Moon Guard',
     region: 'us',
     class: 'Druid',

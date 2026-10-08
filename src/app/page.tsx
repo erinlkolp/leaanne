@@ -360,7 +360,7 @@ export default function Home() {
             World of Warcraft &amp; Blizzard Entertainment are trademarks of Blizzard Entertainment, Inc.
           </p>
           <p className="text-slate-400">
-            Crafted for Leaanne &bull; Run locally with <code className="text-amber-400">npm run dev</code>
+            Crafted for LeaAnne &bull; Run locally with <code className="text-amber-400">npm run dev</code>
           </p>
         </div>
       </footer>

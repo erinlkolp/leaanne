@@ -1,5 +1,5 @@
 @echo off
-title Leaanne's WoW Companion
+title LeaAnne's WoW Companion
 color 0B
 
 echo ========================================================

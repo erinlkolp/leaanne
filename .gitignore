@@ -30,8 +30,27 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
-.env*
+# ========================================================
+# CREDENTIALS & SECRETS PROTECTION (DO NOT REMOVE)
+# Prevent Blizzard API keys, tokens, or local env from leaking
+# ========================================================
+.env
+.env*.local
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+!.env.example
+
+# Credentials & secrets dumps
+credentials.json
+client_secret*.json
+*.token
+*secret*.txt
+*bnet*.key
+*.bak
+backups/*.json
+wow-companion-backup*.json
 
 # vercel
 .vercel
